@@ -31,6 +31,7 @@
 from .telegram import TelegramBot
 import supybot.callbacks as callbacks
 import supybot.ircmsgs as ircmsgs
+from ircutils import mircColor, canonicalColor
 
 import traceback
 import threading
@@ -126,28 +127,34 @@ class TelegramBridge(callbacks.Plugin):
         chat_id = message.get("chat")
         if not chat_id:
             self.log.warning("Malformed Telegram message")
+            return None
+
+        chat_id = chat_id.get("id")
+        channel = chat_ids.get(chat_id, None)
+        if channel:
+            self.log.debug("Got message from Telegram chat %s, relaying "
+                           "to channel %s", chat_id, channel)
         else:
-            chat_id = chat_id.get("id")
-            channel = chat_ids.get(chat_id, None)
-            if channel:
-                self.log.debug("Got message from Telegram chat %s, relaying "
-                               "to channel %s", chat_id, channel)
-            else:
-                self.log.info("Got message from unknown Telegram group: %s",
-                              chat_id)
+            self.log.info("Got message from unknown Telegram group: %s",
+                          chat_id)
         return channel
 
     def _tg_handle_message(self, message):
         channel = self._get_channel_from_chat(message)
-        if channel:
-            text = self._tg_repr_message(message)
-            user = message.get("from")
-            user_id, author = self._tg_user_repr(user)
-            if user_id != self._tgId:
-                for line in text.splitlines():
-                    irc_text = "%s> %s" % (author, line)
-                    self._send_irc_message(channel, irc_text)
-                    self._feed_to_supybot(channel, author, line)
+        if not channel:
+            return
+
+        text = self._tg_repr_message(message)
+        user = message.get("from")
+        user_id, author = self._tg_user_repr(user)
+        if user_id == self._tgId:
+            return  # Ignore messages from myself
+
+        for line in text.splitlines():
+            color = canonicalColor(author)
+            irc_text = "%s> %s" % (mircColor(author, *color), line)
+            self._send_irc_message(channel, irc_text)
+            self._feed_to_supybot(channel, author, line)
 
     def _telegram_discard_previous_updates(self):
         update_id = None
