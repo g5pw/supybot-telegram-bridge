@@ -67,7 +67,7 @@ class TelegramBridge(callbacks.Plugin):
     def _feed_to_supybot(self, channel, author, text):
         # Clean up text if incoming command is from bot keyword
         from re import sub
-        text = sub(r"^/([^\s@]+)(?:@\w+)?(.*)", "\1\2", text)
+        text = sub(r"^/([^\s@]+)(?:@\w+)", r"|\1", text)
         new_msg = ircmsgs.privmsg(channel, text)
         new_msg.prefix = self._tgIrc.prefix
         new_msg.tag("from_telegram")
