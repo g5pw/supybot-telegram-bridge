@@ -79,21 +79,24 @@ class TelegramBridge(callbacks.Plugin):
         chosen = user.get("username", name)
         return user_id, chosen
 
-    def _tg_repr_location(self, location):
+    @staticmethod
+    def _tg_repr_location(location):
         template = ("<location http://www.google.com/maps/place/"
                     "{0},{1}/@{0},{1},17z>")
         text = template.format(location.get("latitude"),
                                location.get("longitude"))
         return text
 
-    def _tg_repr_contact(self, contact):
+    @staticmethod
+    def _tg_repr_contact(contact):
         template = "<contact {} {} {}>"
         text = template.format(contact.get("first_name"),
                                contact.get("last_name"),
                                contact.get("phone_number"))
         return text
 
-    def _tg_repr_non_text(self, message):
+    @staticmethod
+    def _tg_repr_non_text(message):
         text = ""
         for type in ("photo", "video", "audio", "sticker", "contact",
                      "location", "venue", "voice", "game", "document"):
@@ -102,18 +105,19 @@ class TelegramBridge(callbacks.Plugin):
                 if type == "sticker":
                     text = "<sticker {}>".format(object.get("emoji"))
                 elif type == "location":
-                    text = self._tg_repr_location(object)
+                    text = TelegramBridge._tg_repr_location(object)
                 elif type == "contact":
-                    text = self._tg_repr_contact(object)
+                    text = TelegramBridge._tg_repr_contact(object)
                 else:
                     text = "<{}>".format(type)
                 break
         return text
 
-    def _tg_repr_message(self, message):
+    @staticmethod
+    def _tg_repr_message(message):
         text = message.get("text")
         if not text:
-            text = self._tg_repr_non_text(message)
+            text = TelegramBridge._tg_repr_non_text(message)
         return text
 
     def _get_channel_from_chat(self, message):
