@@ -31,7 +31,7 @@
 from .telegram import TelegramBot
 import supybot.callbacks as callbacks
 import supybot.ircmsgs as ircmsgs
-from ircutils import mircColor, canonicalColor
+from supybot.ircutils import mircColor, canonicalColor
 
 import traceback
 import threading
