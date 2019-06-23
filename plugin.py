@@ -36,7 +36,6 @@ from supybot.ircutils import mircColor, canonicalColor
 import traceback
 import threading
 import time
-import sys
 
 import importlib
 from . import telegram
@@ -183,14 +182,9 @@ class TelegramBridge(callbacks.Plugin):
         t.start()
 
     def _send_to_chat(self, text, chatId):
-        if sys.version_info[0] < 3:
-            text = text.decode("utf8", "replace")
-            text = text.encode("utf8")
         self._tg.send_message(chatId, text)
 
     def _send_irc_message(self, channel, text):
-        if sys.version_info[0] < 3:
-            text = text.encode("utf8", "replace")
         new_msg = ircmsgs.privmsg(channel, text)
         new_msg.tag("from_telegram")
         self._tgIrc.queueMsg(new_msg)
@@ -209,15 +203,9 @@ class TelegramBridge(callbacks.Plugin):
             text = msg.args[1]
             if ircmsgs.isAction(msg):
                 text = ircmsgs.unAction(msg)
-                if sys.version_info[0] < 3:
-                    text = text.decode("utf8", "replace")
                 line = "* %s %s" % (msg.nick, text)
             else:
-                if sys.version_info[0] < 3:
-                    text = text.decode("utf8", "replace")
                 line = "%s> %s" % (msg.nick, text)
-            if sys.version_info[0] < 3:
-                line = line.encode("utf8", "replace")
             self._send_to_chat(line, chat_id)
 
     def doTopic(self, irc, msg):
@@ -225,11 +213,7 @@ class TelegramBridge(callbacks.Plugin):
             return
         channel = msg.args[0]
         topic = msg.args[1]
-        if sys.version_info[0] < 3:
-            topic = topic.decode("utf8", "replace")
         line = u"%s: %s" % (channel, topic)
-        if sys.version_info[0] < 3:
-            line = line.encode("utf8")
         self._send_to_chat(line)
 
     def outFilter(self, irc, msg):
